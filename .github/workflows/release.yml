@@ -1,0 +1,20 @@
+name: Package and Release Addon
+
+on:
+  push:
+    tags:
+      - '*' # Triggers whenever you push a git tag (e.g. 1.0.0)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Package and Release to CurseForge
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
