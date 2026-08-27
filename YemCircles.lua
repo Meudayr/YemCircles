@@ -24,7 +24,8 @@ local defaultDB = {
     autoClassColor = false,
     showDot = false,
     trailStyleDot = false,
-    hideOnRightClick = false
+    hideOnRightClick = false,
+    hideWhileFishing = true
 }
 
 -- Performance Cache: Cache frequently used WoW APIs in locals
@@ -250,8 +251,45 @@ end
 
 local hideTimerId = 0
 
+local fishingSpellIDs = {
+    [7620] = true,   -- Fishing (Apprentice)
+    [7731] = true,   -- Fishing (Journeyman)
+    [7732] = true,   -- Fishing (Expert)
+    [18248] = true,  -- Fishing (Artisan)
+    [33095] = true,  -- Fishing (Master)
+    [51294] = true,  -- Fishing (Grand Master)
+    [88868] = true,  -- Fishing (Illustrious)
+    [110410] = true, -- Fishing (Zen Master)
+    [131474] = true, -- Fishing (Base)
+    [158034] = true, -- Draenor Fishing
+    [201126] = true, -- Legion Fishing
+    [271990] = true, -- Kul Tiran / Zandalari Fishing
+    [325983] = true, -- Shadowlands Fishing
+    [389445] = true, -- Dragonflight Fishing
+    [434947] = true, -- Khaz Algar Fishing
+}
+
+local function IsPlayerFishing()
+    local name, _, _, _, _, _, _, spellId = UnitChannelInfo("player")
+    if not name then return false end
+    if spellId and fishingSpellIDs[spellId] then return true end
+    local fishingName = (C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(131474) and C_Spell.GetSpellInfo(131474).name)
+        or (C_Spell and C_Spell.GetSpellName and (C_Spell.GetSpellName(131474) or C_Spell.GetSpellName(7620)))
+        or (GetSpellInfo and (GetSpellInfo(131474) or GetSpellInfo(7620)))
+        or "Fishing"
+    if name == fishingName or name == "Fishing" then
+        return true
+    end
+    return false
+end
+
 local function UpdateVisibility()
     if YemCirclesDB.hideOnRightClick and IsMouseButtonDown("RightButton") then
+        core:Hide()
+        return
+    end
+
+    if YemCirclesDB.hideWhileFishing and IsPlayerFishing() then
         core:Hide()
         return
     end
@@ -932,13 +970,16 @@ opacityInput:SetScript("OnEscapePressed", function(self)
 end)
 
 
--- Misc checkboxes (compacted now that cast/GCD live in the Sweep box below)
-local cbShowDot    = CreateCheckbox("ShowDot",    "Show Center Dot",      16,  uiOffset - 190, "showDot")
-local cbFilled     = CreateCheckbox("Filled",     "Solid Filled Circle",  240, uiOffset - 190, "filled")
-local cbTrail      = CreateCheckbox("Trail",      "Enable Cursor Trail",  16,  uiOffset - 214, "trail")
-local cbHideCombat = CreateCheckbox("HideCombat", "Hide Out of Combat",   240, uiOffset - 214, "hideOutOfCombat")
-cbTrailDot         = CreateCheckbox("TrailDot",   "Use Dot for Trail",    16,  uiOffset - 238, "trailStyleDot")
-local cbHideRightClick = CreateCheckbox("HideRightClick", "Hide on Right Click", 240, uiOffset - 238, "hideOnRightClick")
+-- Misc checkboxes (arranged in 3 thematic columns)
+local cbShowDot        = CreateCheckbox("ShowDot",        "Show Center Dot",      16,  uiOffset - 190, "showDot")
+local cbFilled         = CreateCheckbox("Filled",         "Solid Filled Circle",  16,  uiOffset - 214, "filled")
+
+local cbTrail          = CreateCheckbox("Trail",          "Enable Cursor Trail",  210, uiOffset - 190, "trail")
+cbTrailDot             = CreateCheckbox("TrailDot",       "Use Dot for Trail",    210, uiOffset - 214, "trailStyleDot")
+
+local cbHideCombat     = CreateCheckbox("HideCombat",     "Hide Out of Combat",   405, uiOffset - 190, "hideOutOfCombat")
+local cbHideRightClick = CreateCheckbox("HideRightClick", "Hide on Right Click", 405, uiOffset - 214, "hideOnRightClick")
+local cbHideFishing    = CreateCheckbox("HideFishing",    "Hide While Fishing",  405, uiOffset - 238, "hideWhileFishing")
 
 -------------------------------------------------
 -- SWEEP SETTINGS BOX
@@ -1131,6 +1172,7 @@ local function UpdateUIFromDB()
     cbShowDot:SetChecked(YemCirclesDB.showDot)
     cbTrailDot:SetChecked(YemCirclesDB.trailStyleDot)
     cbHideRightClick:SetChecked(YemCirclesDB.hideOnRightClick)
+    cbHideFishing:SetChecked(YemCirclesDB.hideWhileFishing)
     
     UpdateColorWidget(options.ColorBtn, YemCirclesDB.r, YemCirclesDB.g, YemCirclesDB.b, YemCirclesDB.a)
     UpdateColorWidget(options.CastColorBtn, YemCirclesDB.castR, YemCirclesDB.castG, YemCirclesDB.castB, YemCirclesDB.castA)

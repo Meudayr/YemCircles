@@ -3,7 +3,7 @@
 ## Title: Yem Circles
 ## Notes: Adds a customizable circle, trail, and cast bar to the cursor.
 ## Author: Meudayr_cr
-## Version: 1.9
+## Version: 1.10
 ## SavedVariables: YemCirclesDB
 ## IconTexture: Interface\AddOns\YemCircles\icon
 
